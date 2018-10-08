@@ -2,6 +2,7 @@
 name = "toy_os"
 version = "0.1.0"
 authors = ["Ivan Mondragon <imondrag@umich.edu>"]
+edition = "2018"
 
 [dependencies]
 volatile = "*"

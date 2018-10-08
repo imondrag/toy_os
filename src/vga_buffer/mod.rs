@@ -142,6 +142,7 @@ pub fn clear_screen() {
 }
 
 
+/*
 #[cfg(test)]
 mod test {
     use super::*;
@@ -181,4 +182,5 @@ mod test {
     }
 
 }
+*/
 

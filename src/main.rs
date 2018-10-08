@@ -5,11 +5,6 @@
 #![cfg_attr(not(test), no_main)]
 #![cfg_attr(test, allow(dead_code, unused_macros, unused_imports))]
 
-extern crate spin;
-extern crate volatile;
-extern crate uart_16550;
-extern crate x86_64;
-
 #[cfg(test)]
 extern crate std;
 
