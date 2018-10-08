@@ -1,0 +1,28 @@
+[package]
+name = "toy_os"
+version = "0.1.0"
+authors = ["Ivan Mondragon <imondrag@umich.edu>"]
+
+[dependencies]
+volatile = "*"
+spin = "*"
+uart_16550 = "*"
+x86_64 = "*"
+
+[dev-dependencies]
+array-init = "*"
+
+[dependencies.lazy_static]
+version = "*"
+features = ["spin_no_std"]
+
+
+[profile.dev]
+panic = "abort"
+
+[profile.release]
+panic = "abort"
+
+
+[package.metadata.bootimage]
+default-target = "x86_64-toy_os.json"
