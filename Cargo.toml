@@ -5,6 +5,7 @@ authors = ["Ivan Mondragon <imondrag@umich.edu>"]
 edition = "2018"
 
 [dependencies]
+bootloader = "*"
 volatile = "*"
 spin = "*"
 uart_16550 = "*"
@@ -18,12 +19,8 @@ version = "*"
 features = ["spin_no_std"]
 
 
-[profile.dev]
+[profile]
 panic = "abort"
-
-[profile.release]
-panic = "abort"
-
 
 [package.metadata.bootimage]
 default-target = "x86_64-toy_os.json"
