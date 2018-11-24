@@ -1,13 +1,11 @@
 #![feature(abi_x86_interrupt)]
 #![feature(const_fn)]
-
 #![no_std]
 #![cfg_attr(not(test), no_main)]
 #![cfg_attr(test, allow(dead_code, unused_macros, unused_imports))]
 
 #[macro_use]
 extern crate bootloader;
-
 
 #[cfg(test)]
 extern crate std;
@@ -31,7 +29,8 @@ lazy_static! {
         let mut idt = InterruptDescriptorTable::new();
         idt.breakpoint.set_handler_fn(breakpoint_handler);
         unsafe {
-            idt.double_fault.set_handler_fn(double_fault_handler)
+            idt.double_fault
+                .set_handler_fn(double_fault_handler)
                 .set_stack_index(gdt::DOUBLE_FAULT_IST_INDEX);
         }
 
@@ -73,24 +72,22 @@ pub unsafe fn exit_qemu() {
     port.write(0);
 }
 
-use x86_64::structures::idt::{InterruptDescriptorTable, ExceptionStackFrame};
+use x86_64::structures::idt::{ExceptionStackFrame, InterruptDescriptorTable};
 
 pub fn init_idt() {
     IDT.load();
 }
 
 extern "x86-interrupt" fn breakpoint_handler(
-    stack_frame: &mut ExceptionStackFrame)
-{
+    stack_frame: &mut ExceptionStackFrame,
+) {
     println!("EXCEPTION: BREAKPOINT\n{:#?}", stack_frame);
 }
 
 extern "x86-interrupt" fn double_fault_handler(
-    stack_frame: &mut ExceptionStackFrame, _error_code: u64)
-{
+    stack_frame: &mut ExceptionStackFrame,
+    _error_code: u64,
+) {
     println!("EXCEPTION: DOUBLE FAULT\n{:#?}", stack_frame);
     loop {}
 }
-
-
-

@@ -18,9 +18,11 @@ array-init = "*"
 version = "*"
 features = ["spin_no_std"]
 
+[profile.dev]
+panic = "abort" # disable stack unwinding on panic
 
-[profile]
-panic = "abort"
+[profile.release]
+panic = "abort" # disable stack unwinding on panic
 
 [package.metadata.bootimage]
 default-target = "x86_64-toy_os.json"
