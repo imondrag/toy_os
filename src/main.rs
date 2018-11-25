@@ -6,7 +6,7 @@
 use bootloader::bootinfo::BootInfo;
 use bootloader::entry_point;
 use core::panic::PanicInfo;
-use toy_os::{gdt, interrupts, println};
+use toy_os::{gdt, interrupts, print, println};
 
 #[cfg(not(test))]
 entry_point!(kernel_main);
@@ -14,17 +14,22 @@ entry_point!(kernel_main);
 fn kernel_main(boot_info: &'static BootInfo) -> ! {
     gdt::init();
     interrupts::init_idt();
+    unsafe { interrupts::PICS.lock().initialize() };
+
+    x86_64::instructions::interrupts::enable();
 
     // explicitly call breakpoint interrupt
     // should call interrupt handler and continue with program
-    x86_64::instructions::int3();
+    //x86_64::instructions::int3();
 
-    // trigger a page fault
-    unsafe {
-        *(0xdeadbeef as *mut u64) = 42;
-    };
+    println!("WE GOOD!");
 
-    println!("Hello!");
+    for i in 0.. {
+        if i % 1_000_000 == 0 {
+            print!("-");
+        }
+    }
+
     toy_os::hlt_loop();
 }
 
