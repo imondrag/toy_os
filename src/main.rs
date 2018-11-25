@@ -3,27 +3,28 @@
 #![cfg_attr(not(test), no_main)]
 #![cfg_attr(test, allow(dead_code, unused_macros, unused_imports))]
 
+use bootloader::bootinfo::BootInfo;
 use bootloader::entry_point;
 use core::panic::PanicInfo;
-use toy_os::gdt;
-use toy_os::init_idt;
-use toy_os::println;
+use toy_os::{gdt, interrupts, println};
 
 #[cfg(not(test))]
 entry_point!(kernel_main);
 
-fn kernel_main(boot_info: &'static bootloader::bootinfo::BootInfo) -> ! {
-    const NAME: &'static str = "Ivan";
-    println!("Hello, {}!", NAME);
-
+fn kernel_main(boot_info: &'static BootInfo) -> ! {
     gdt::init();
-    init_idt();
+    interrupts::init_idt();
 
     // explicitly call breakpoint interrupt
     // should call interrupt handler and continue with program
     x86_64::instructions::int3();
 
-    println!("Passed!");
+    // trigger a page fault
+    unsafe {
+        *(0xdeadbeef as *mut u64) = 42;
+    };
+
+    println!("Hello!");
     toy_os::hlt_loop();
 }
 
