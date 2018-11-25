@@ -1,18 +1,20 @@
 use core::fmt;
+use lazy_static::lazy_static;
 use spin::Mutex;
 use volatile::Volatile;
 
-mod color;
-use self::color::{Color, ColorCode};
-
-const TERMINAL_BUFFER: usize = 0xb8000;
+mod color_code;
+use self::color_code::{Color, ColorCode};
 
 lazy_static! {
-    static ref WRITER: Mutex<Writer> = Mutex::new(Writer {
+    /// A global `Writer` instance that can be used for printing to the VGA text buffer.
+    ///
+    /// Used by the `print!` and `println!` macros.
+    pub static ref WRITER: Mutex<Writer> = Mutex::new(Writer {
         column_position: 0,
         row_position: 0,
         color_code: ColorCode::new(Color::White, Color::Black),
-        buffer: unsafe { &mut *(TERMINAL_BUFFER as *mut Buffer) },
+        buffer: unsafe { &mut *(0xb8000 as *mut Buffer) },
     });
 }
 
@@ -31,7 +33,7 @@ struct Buffer {
     chars: [[Volatile<ScreenChar>; BUFFER_WIDTH]; BUFFER_HEIGHT],
 }
 
-struct Writer {
+pub struct Writer {
     column_position: usize,
     row_position: usize,
     color_code: ColorCode,
@@ -122,13 +124,19 @@ impl fmt::Write for Writer {
     }
 }
 
+/// Like the `print!` macro in the standard library, but prints to the VGA text
+/// buffer.
+#[macro_export]
 macro_rules! print {
     ($($arg:tt)*) => ($crate::vga_buffer::print(format_args!($($arg)*)));
 }
 
+/// Like the `println!` macro in the standard library, but prints to the VGA
+/// text buffer.
+#[macro_export]
 macro_rules! println {
-    ($fmt:expr) => (print!(concat!($fmt, "\n")));
-    ($fmt:expr, $($arg:tt)*) => (print!(concat!($fmt, "\n"), $($arg)*));
+    () => ($crate::print!("\n"));
+    ($($arg:tt)*) => ($crate::print!("{}\n", format_args!($($arg)*)));
 }
 
 pub fn print(args: fmt::Arguments) {
