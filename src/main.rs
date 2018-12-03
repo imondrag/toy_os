@@ -5,8 +5,9 @@
 
 use bootloader::bootinfo::BootInfo;
 use bootloader::entry_point;
+use core::fmt::Write;
 use core::panic::PanicInfo;
-use toy_os::{gdt, interrupts, print, println};
+use toy_os::{gdt, interrupts, vga_buffer::Writer};
 
 #[cfg(not(test))]
 entry_point!(kernel_main);
@@ -22,11 +23,11 @@ fn kernel_main(boot_info: &'static BootInfo) -> ! {
     // should call interrupt handler and continue with program
     //x86_64::instructions::int3();
 
-    println!("WE GOOD!");
+    writeln!(Writer, "WE GOOD!");
 
     for i in 0.. {
         if i % 1_000_000 == 0 {
-            print!("-");
+            write!(Writer, "-");
         }
     }
 
@@ -36,6 +37,6 @@ fn kernel_main(boot_info: &'static BootInfo) -> ! {
 #[cfg(not(test))]
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
-    println!("{}", info);
+    writeln!(Writer, "{}", info);
     toy_os::hlt_loop();
 }

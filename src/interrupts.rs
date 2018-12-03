@@ -1,4 +1,5 @@
-use crate::{gdt, hlt_loop, print, println};
+use crate::{gdt, hlt_loop, vga_buffer::Writer};
+use core::fmt::Write;
 use lazy_static::lazy_static;
 use x86_64::structures::idt::{ExceptionStackFrame, InterruptDescriptorTable};
 
@@ -38,20 +39,20 @@ pub fn init_idt() {
 extern "x86-interrupt" fn breakpoint_handler(
     stack_frame: &mut ExceptionStackFrame,
 ) {
-    println!("\nEXCEPTION: BREAKPOINT\n{:#?}", stack_frame);
+    writeln!(Writer, "\nEXCEPTION: BREAKPOINT\n{:#?}", stack_frame);
 }
 
 extern "x86-interrupt" fn double_fault_handler(
     stack_frame: &mut ExceptionStackFrame,
     _error_code: u64,
 ) {
-    println!("\nEXCEPTION: DOUBLE FAULT\n{:#?}", stack_frame);
+    writeln!(Writer, "\nEXCEPTION: DOUBLE FAULT\n{:#?}", stack_frame);
     hlt_loop();
 }
 
 extern "x86-interrupt" fn timer_interrupt_handler(
     stack_frame: &mut ExceptionStackFrame,
 ) {
-    print!(".");
+    write!(Writer, ".");
     unsafe { PICS.lock().notify_end_of_interrupt(TIMER_INTERRUPT_ID) }
 }

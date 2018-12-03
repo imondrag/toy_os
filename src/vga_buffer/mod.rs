@@ -1,22 +1,21 @@
-use core::fmt;
-use lazy_static::lazy_static;
-use spin::Mutex;
-use volatile::Volatile;
+use core::fmt::{self, Write};
+use core::slice;
+use core::sync::atomic::{AtomicUsize, Ordering};
 
 mod color_code;
 use self::color_code::{Color, ColorCode};
 
-lazy_static! {
-    /// A global `Writer` instance that can be used for printing to the VGA text buffer.
-    ///
-    /// Used by the `print!` and `println!` macros.
-    pub static ref WRITER: Mutex<Writer> = Mutex::new(Writer {
-        column_position: 0,
-        row_position: 0,
-        color_code: ColorCode::new(Color::White, Color::Black),
-        buffer: unsafe { &mut *(0xb8000 as *mut Buffer) },
-    });
-}
+const VGA_BUFFER: *mut u8 = 0xb8000 as *mut _;
+const SCREEN_HEIGHT: usize = 25;
+const SCREEN_WIDTH: usize = 80;
+
+static X_POS: AtomicUsize = AtomicUsize::new(0);
+static Y_POS: AtomicUsize = AtomicUsize::new(0);
+static COLOR: ColorCode = ColorCode::new(Color::White, Color::Black);
+
+pub struct Writer;
+
+type VGABuf = [[ScreenChar; SCREEN_WIDTH]];
 
 #[repr(C)]
 #[derive(Debug, Clone, Copy)]
@@ -25,120 +24,97 @@ struct ScreenChar {
     color_code: ColorCode,
 }
 
-const BUFFER_HEIGHT: usize = 25;
-const BUFFER_WIDTH: usize = 80;
-
-/// VGA buffer, array of rows with constant width and height
-struct Buffer {
-    chars: [[Volatile<ScreenChar>; BUFFER_WIDTH]; BUFFER_HEIGHT],
-}
-
-pub struct Writer {
-    column_position: usize,
-    row_position: usize,
-    color_code: ColorCode,
-    buffer: &'static mut Buffer,
-}
-
 #[allow(dead_code)]
 impl Writer {
-    pub fn write_byte(&mut self, byte: u8) {
-        match byte {
+    pub fn clear_screen(&mut self) {
+        for row in 0..SCREEN_HEIGHT {
+            self.clear_row(row);
+        }
+
+        X_POS.store(0, Ordering::Relaxed);
+        Y_POS.store(0, Ordering::Relaxed);
+    }
+
+    pub fn write_byte(&mut self, b: u8) {
+        match b {
             b'\n' => self.new_line(),
             b'\r' => self.carriage_return(),
             _ => {
-                if self.column_position >= BUFFER_WIDTH {
+                let vga_buffer = Self::vga_buffer();
+                let x = X_POS.load(Ordering::SeqCst);
+                let y = Y_POS.fetch_add(1, Ordering::SeqCst);
+
+                vga_buffer[x][y] = ScreenChar {
+                    ascii_char: b,
+                    color_code: COLOR,
+                };
+
+                if y + 1 >= SCREEN_WIDTH {
                     self.new_line();
                 }
-
-                let row = self.row_position;
-                let col = self.column_position;
-                let ascii_char = byte;
-                let color_code = self.color_code;
-
-                self.buffer.chars[row][col].write(ScreenChar {
-                    ascii_char,
-                    color_code,
-                });
-
-                self.column_position += 1;
             }
         }
     }
 
-    pub fn clear_screen(&mut self) {
-        for row in 0..BUFFER_HEIGHT {
-            self.clear_row(row);
+    fn vga_buffer() -> &'static mut VGABuf {
+        unsafe {
+            slice::from_raw_parts_mut(
+                VGA_BUFFER as *mut [ScreenChar; SCREEN_WIDTH],
+                SCREEN_WIDTH * SCREEN_HEIGHT,
+            )
         }
-
-        self.column_position = 0;
-        self.row_position = 0;
     }
 
     fn carriage_return(&mut self) {
-        self.column_position = 0;
+        Y_POS.store(0, Ordering::Relaxed);
     }
 
     fn new_line(&mut self) {
-        if self.row_position >= BUFFER_HEIGHT - 1 {
+        let vga_buffer = Self::vga_buffer();
+        let x = X_POS.load(Ordering::SeqCst);
+
+        if x >= SCREEN_HEIGHT - 1 {
             // copy every row to the row above it
-            for row in 1..BUFFER_HEIGHT {
-                for col in 0..BUFFER_WIDTH {
-                    let ch = self.buffer.chars[row][col].read();
-                    self.buffer.chars[row - 1][col].write(ch);
+            for row in 1..SCREEN_HEIGHT {
+                for col in 0..SCREEN_WIDTH {
+                    let ch = vga_buffer[row][col];
+                    vga_buffer[row - 1][col] = ch;
                 }
             }
 
             // clear the last row
-            self.clear_row(BUFFER_HEIGHT - 1);
+            self.clear_row(SCREEN_HEIGHT - 1);
         } else {
-            self.row_position += 1;
+            X_POS.fetch_add(1, Ordering::Relaxed);
         }
 
-        self.column_position = 0;
+        Y_POS.store(0, Ordering::Relaxed);
     }
 
     fn clear_row(&mut self, row: usize) {
+        let vga_buffer = Self::vga_buffer();
         let blank = ScreenChar {
             ascii_char: 0,
-            color_code: self.color_code,
+            color_code: COLOR,
         };
 
-        for col in 0..BUFFER_WIDTH {
-            self.buffer.chars[row][col].write(blank);
+        for col in 0..SCREEN_WIDTH {
+            vga_buffer[row][col] = blank;
         }
-    }
-
-    fn exchange_color(&mut self, color_code: ColorCode) -> ColorCode {
-        use core::mem;
-        mem::replace(&mut self.color_code, color_code)
     }
 }
 
-impl fmt::Write for Writer {
+impl Write for Writer {
     fn write_str(&mut self, s: &str) -> fmt::Result {
-        for byte in s.bytes() {
-            self.write_byte(byte);
+        for b in s.bytes() {
+            self.write_byte(b);
         }
+
         Ok(())
     }
 }
 
-/// Like the `print!` macro in the standard library, but prints to the VGA text
-/// buffer.
-#[macro_export]
-macro_rules! print {
-    ($($arg:tt)*) => ($crate::vga_buffer::print(format_args!($($arg)*)));
-}
-
-/// Like the `println!` macro in the standard library, but prints to the VGA
-/// text buffer.
-#[macro_export]
-macro_rules! println {
-    () => ($crate::print!("\n"));
-    ($($arg:tt)*) => ($crate::print!("{}\n", format_args!($($arg)*)));
-}
-
+/*
 pub fn print(args: fmt::Arguments) {
     use core::fmt::Write;
     use x86_64::instructions::interrupts;
@@ -147,11 +123,7 @@ pub fn print(args: fmt::Arguments) {
         WRITER.lock().write_fmt(args).unwrap();
     });
 }
-
-#[allow(dead_code)]
-pub fn clear_screen() {
-    WRITER.lock().clear_screen();
-}
+*/
 
 /*
 #[cfg(test)]
