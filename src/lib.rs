@@ -5,6 +5,7 @@
 pub mod gdt;
 pub mod interrupts;
 pub mod serial;
+pub mod stdio;
 pub mod vga_buffer;
 
 pub unsafe fn exit_qemu() {
