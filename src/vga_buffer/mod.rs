@@ -102,6 +102,26 @@ impl Writer {
             vga_buffer[row][col] = blank;
         }
     }
+
+    fn set_cursor(&mut self, x: usize, y: usize) {
+        use x86_64::instructions::port::Port;
+        let pos = y * SCREEN_WIDTH + x;
+        let lower = (pos & 0xFF) as u8;
+        let upper = ((pos >> 8) & 0xFF) as u8;
+        let mut port3D4 = Port::new(0x3D4);
+        let mut port3D5 = Port::new(0x3D5);
+
+        unsafe {
+        //outb(0x3D4, 0x0F);
+            port3D4.write(0x0F_u8);
+        //outb(0x3D5, (uint8_t) (pos & 0xFF));
+            port3D5.write(lower);
+        //outb(0x3D4, 0x0E);
+            port3D4.write(0x0E_u8);
+        //outb(0x3D5, (uint8_t) ((pos >> 8) & 0xFF));
+            port3D5.write(upper);
+        }
+    }
 }
 
 impl Write for Writer {
@@ -109,6 +129,11 @@ impl Write for Writer {
         for b in s.bytes() {
             self.write_byte(b);
         }
+
+        self.set_cursor(
+            X_POS.load(Ordering::SeqCst),
+            Y_POS.load(Ordering::SeqCst)
+        );
 
         Ok(())
     }

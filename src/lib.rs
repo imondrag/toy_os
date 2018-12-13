@@ -1,8 +1,8 @@
 #![cfg_attr(not(test), no_std)] // don't link the Rust standard library
-#![feature(const_fn)]
 #![feature(abi_x86_interrupt)]
 
 pub mod gdt;
+pub mod io;
 pub mod interrupts;
 pub mod serial;
 pub mod stdio;
