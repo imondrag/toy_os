@@ -15,6 +15,8 @@ fn kernel_main(boot_info: &'static BootInfo) -> ! {
     interrupts::init_idt();
 
     unsafe { interrupts::PICS.lock().initialize() };
+
+    // mask timer interrupts
     interrupts::irq_set_mask(0);
 
     x86_64::instructions::interrupts::enable();
@@ -23,8 +25,9 @@ fn kernel_main(boot_info: &'static BootInfo) -> ! {
     // should call interrupt handler and continue with program
     //x86_64::instructions::int3();
 
-    writeln!(Writer, "WE GOOD!");
-
+    writeln!(Writer, "Hello world!");
+    let msr = x86_64::registers::model_specific::Efer;
+    writeln!(Writer, "These are my flags: {:x}", msr);
     toy_os::hlt_loop();
 }
 
