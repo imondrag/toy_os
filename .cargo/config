@@ -1,0 +1,4 @@
+# .cargo/config
+
+[build]
+target = "x86_64-toy_os.json"
