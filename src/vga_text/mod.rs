@@ -4,4 +4,4 @@
 mod color_code;
 
 // defines actual vga writer
-mod writer;
+pub mod writer;
