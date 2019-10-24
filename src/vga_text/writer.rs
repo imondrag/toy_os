@@ -1,6 +1,6 @@
 // src/vga_text/writer.rs
 
-use crate::vga_text::color_code::ColorCode;
+use super::color_code::ColorCode;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(C)]
