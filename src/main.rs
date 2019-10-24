@@ -6,6 +6,9 @@
 // panic handler
 mod panic;
 
+// hanldes printing to vga buffer
+mod vga_text;
+
 static MSG: &[u8] = b"Hello, world!";
 
 #[no_mangle]
