@@ -7,7 +7,7 @@
 mod panic;
 
 // hanldes printing to vga buffer
-mod vga_text;
+mod vga;
 
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
