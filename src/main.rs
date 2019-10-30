@@ -6,8 +6,12 @@
 // panic handler
 mod panic;
 
-// hanldes printing to vga buffer
+// printing to vga buffer
 mod vga;
+
+// interfacing with qemu
+mod qemu;
+mod serial;
 
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
