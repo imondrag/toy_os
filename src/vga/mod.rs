@@ -1,4 +1,4 @@
-// src/vga_text/mod.rs
+// src/vga/mod.rs
 
 // defines Color and ColorCode POD
 mod color_code;

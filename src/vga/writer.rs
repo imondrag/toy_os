@@ -1,4 +1,4 @@
-// src/vga_text/writer.rs
+// src/vga/writer.rs
 
 use super::color_code::{Color, ColorCode};
 use core::fmt;
@@ -124,7 +124,7 @@ impl Writer {
 
 #[macro_export]
 macro_rules! print {
-    ($($arg:tt)*) => ($crate::vga_text::writer::_print(format_args!($($arg)*)));
+    ($($arg:tt)*) => ($crate::vga::writer::_print(format_args!($($arg)*)));
 }
 
 #[macro_export]
