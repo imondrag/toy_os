@@ -1,7 +1,7 @@
 #![no_std]
 #![no_main]
 #![feature(custom_test_frameworks)]
-#![test_runner(crate::test_runner)]
+#![test_runner(toy_os::test_runner)]
 #![reexport_test_harness_main = "test_main"]
 
 use bootloader::{entry_point, BootInfo};
