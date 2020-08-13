@@ -9,7 +9,7 @@ use toy_os::println;
 
 entry_point!(kernel_main);
 
-fn kernel_main(boot_info: &'static BootInfo) -> ! {
+fn kernel_main(_boot_info: &'static BootInfo) -> ! {
     println!("Hello World!");
     toy_os::init();
 
