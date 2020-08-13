@@ -1,22 +1,25 @@
 #![no_std]
 #![no_main]
+#![feature(custom_test_frameworks)]
+#![test_runner(crate::test_runner)]
+#![reexport_test_harness_main = "test_main"]
 
-extern crate rlibc;
+use bootloader::{entry_point, BootInfo};
+use toy_os::println;
 
-// panic handler
-mod panic;
+entry_point!(kernel_main);
 
-// printing to vga buffer
-mod vga;
+fn kernel_main(boot_info: &'static BootInfo) -> ! {
+    println!("Hello World!");
+    toy_os::init();
 
-// interfacing with qemu
-mod qemu;
-mod serial;
+    #[cfg(test)]
+    test_main();
 
-#[no_mangle]
-pub extern "C" fn _start() -> ! {
-    println!("Hello, world!");
-    serial_println!("Hello, serial world{}", "!");
+    toy_os::hlt_loop();
+}
 
-    loop {}
+#[test_case]
+fn trivial_assertion() {
+    assert_eq!(1, 1);
 }
