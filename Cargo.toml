@@ -5,7 +5,7 @@ authors = ["Ivan Mondragon <imondrag@umich.edu>"]
 edition = "2018"
 
 [dependencies]
-bootloader = "0.9.8"
+bootloader = { version = "0.9.8", features = ["map_physical_memory"]}
 volatile = "0.3.0"
 spin = "0.5.2"
 x86_64 = "0.11.2"

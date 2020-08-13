@@ -13,6 +13,7 @@ extern crate rlibc;
 
 pub mod gdt;
 pub mod interrupts;
+pub mod memory;
 pub mod panic;
 pub mod qemu;
 pub mod serial;
