@@ -2,11 +2,13 @@
 #![no_main]
 #![feature(custom_test_frameworks)]
 #![test_runner(toy_os::test_runner)]
+#![feature(box_syntax)]
 #![reexport_test_harness_main = "test_main"]
 
 extern crate alloc;
 
 use bootloader::{entry_point, BootInfo};
+use toy_os::allocator;
 use toy_os::memory::{self, BootInfoFrameAllocator};
 use toy_os::println;
 use x86_64::VirtAddr;
@@ -18,8 +20,10 @@ fn kernel_main(boot_info: &'static BootInfo) -> ! {
     toy_os::init();
 
     let phys_mem_offset = VirtAddr::new(boot_info.physical_memory_offset);
-    let mut _mapper = unsafe { memory::init(phys_mem_offset) };
-    let mut _frame_allocator = unsafe { BootInfoFrameAllocator::init(&boot_info.memory_map) };
+    let mut mapper = unsafe { memory::init(phys_mem_offset) };
+    let mut frame_allocator = unsafe { BootInfoFrameAllocator::init(&boot_info.memory_map) };
+
+    allocator::init_heap(&mut mapper, &mut frame_allocator).expect("heap initialization failed");
 
     #[cfg(test)]
     test_main();
