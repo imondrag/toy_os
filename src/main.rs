@@ -1,7 +1,7 @@
-// main.rs
-
 #![no_std]
 #![no_main]
+
+extern crate rlibc;
 
 // panic handler
 mod panic;
