@@ -11,6 +11,7 @@ use bootloader::{entry_point, BootInfo};
 use toy_os::allocator;
 use toy_os::memory::{self, BootInfoFrameAllocator};
 use toy_os::println;
+use toy_os::task::{executor::Executor, keyboard, Task};
 use x86_64::VirtAddr;
 
 entry_point!(kernel_main);
@@ -28,7 +29,9 @@ fn kernel_main(boot_info: &'static BootInfo) -> ! {
     #[cfg(test)]
     test_main();
 
-    toy_os::hlt_loop();
+    let mut executor = Executor::new();
+    executor.spawn(Task::new(keyboard::print_keypresses()));
+    executor.run();
 }
 
 #[test_case]

@@ -5,6 +5,7 @@
 #![feature(alloc_error_handler)]
 #![feature(const_fn)]
 #![feature(const_in_array_repeat_expressions)]
+#![feature(wake_trait)]
 #![test_runner(crate::test_runner)]
 #![reexport_test_harness_main = "test_main"]
 
@@ -18,6 +19,7 @@ pub mod memory;
 pub mod panic;
 pub mod qemu;
 pub mod serial;
+pub mod task;
 pub mod vga;
 
 use qemu::{exit_qemu, QemuExitCode};
