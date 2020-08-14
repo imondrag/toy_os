@@ -14,6 +14,7 @@ fn userspace_main(boot_info: &'static BootInfo) -> ! {
     // // TODO: kernel should be calling this userspace main function
     // // NOT how it's currently done
     toy_os::kmain(boot_info);
+
     println!("Hello World!");
 
     let mut executor = Executor::new();
