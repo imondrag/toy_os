@@ -20,34 +20,12 @@ pub mod task;
 pub mod vga;
 
 use crate::memory::BootInfoFrameAllocator;
-use bootloader::BootInfo;
-use core::sync::atomic::{AtomicUsize, Ordering};
+pub use bootloader::BootInfo;
 use x86_64::VirtAddr;
 
-/// A unique number that identifies the current CPU - used for scheduling
-#[thread_local]
-static CPU_ID: AtomicUsize = AtomicUsize::new(0);
-
-/// Get the current CPU's scheduling ID
-#[inline(always)]
-pub fn cpu_id() -> usize {
-    CPU_ID.load(Ordering::Relaxed)
-}
-
-/// The count of all CPUs that can have work scheduled
-static CPU_COUNT: AtomicUsize = AtomicUsize::new(0);
-
-/// Get the number of CPUs currently active
-#[inline(always)]
-pub fn cpu_count() -> usize {
-    CPU_COUNT.load(Ordering::Relaxed)
-}
-
 /// This is the kernel entry point for the primary CPU.
+/// TODO: THIS SHOULD NOT RETURN
 pub fn kmain(boot_info: &'static BootInfo) {
-    // CPU_ID.store(0, Ordering::SeqCst);
-    // CPU_COUNT.store(1, Ordering::SeqCst);
-
     gdt::init();
     interrupts::init_idt();
     unsafe { interrupts::PICS.lock().initialize() };
@@ -64,7 +42,6 @@ pub fn kmain(boot_info: &'static BootInfo) {
 /// This is the main kernel entry point for secondary CPUs
 #[allow(unreachable_code, unused_variables)]
 pub fn kmain_ap(id: usize) -> ! {
-    CPU_ID.store(id, Ordering::SeqCst);
     hlt_loop();
 }
 
@@ -72,4 +49,17 @@ pub fn hlt_loop() -> ! {
     loop {
         x86_64::instructions::hlt();
     }
+}
+
+#[macro_export]
+macro_rules! userspace_entrypoint {
+    ($path:path) => {
+        #[export_name = "_start"]
+        pub extern "C" fn __impl_start(boot_info: &'static $crate::BootInfo) -> ! {
+            // validate the signature of the program entry point
+            let f: fn() -> ! = $path;
+            $crate::kmain(boot_info);
+            f()
+        }
+    };
 }

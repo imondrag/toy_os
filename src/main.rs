@@ -4,17 +4,13 @@
 
 extern crate alloc;
 
-use bootloader::{entry_point, BootInfo};
 use toy_os::println;
 use toy_os::task::{executor::Executor, keyboard, Task};
+use toy_os::userspace_entrypoint;
 
-entry_point!(userspace_main);
+userspace_entrypoint!(userspace_main);
 
-fn userspace_main(boot_info: &'static BootInfo) -> ! {
-    // // TODO: kernel should be calling this userspace main function
-    // // NOT how it's currently done
-    toy_os::kmain(boot_info);
-
+fn userspace_main() -> ! {
     println!("Hello World!");
 
     let mut executor = Executor::new();
