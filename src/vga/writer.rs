@@ -45,6 +45,7 @@ impl fmt::Write for Writer {
 }
 
 impl Writer {
+    #[allow(dead_code)]
     #[inline]
     fn clear_screen(&mut self) {
         for row in 0..BUFFER_HEIGHT {
