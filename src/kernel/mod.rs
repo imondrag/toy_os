@@ -5,4 +5,3 @@ pub mod devices;
 pub mod interrupts;
 pub mod memory;
 pub mod panic;
-pub mod serial;
