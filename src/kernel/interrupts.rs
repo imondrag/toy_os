@@ -1,4 +1,4 @@
-use crate::{hlt_loop, kernel::gdt, print, println};
+use crate::{hlt_loop, print, println};
 use lazy_static::lazy_static;
 use pic8259_simple::ChainedPics;
 use spin;
@@ -36,7 +36,7 @@ lazy_static! {
         unsafe {
             idt.double_fault
                 .set_handler_fn(double_fault_handler)
-                .set_stack_index(gdt::DOUBLE_FAULT_IST_INDEX);
+                .set_stack_index(crate::kernel::devices::gdt::DOUBLE_FAULT_IST_INDEX);
         }
 
         idt[InterruptIndex::Timer.as_usize()].set_handler_fn(timer_interrupt_handler);

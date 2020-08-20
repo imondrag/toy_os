@@ -20,7 +20,7 @@ use x86_64::VirtAddr;
 /// This is the kernel entry point for the primary CPU.
 /// TODO: THIS SHOULD NOT RETURN
 pub fn kmain(boot_info: &'static BootInfo) {
-    kernel::gdt::init();
+    kernel::devices::gdt::init();
     kernel::interrupts::init_idt();
     unsafe { kernel::interrupts::PICS.lock().initialize() };
 

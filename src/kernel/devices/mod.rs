@@ -1,3 +1,3 @@
 // mod serial;
-// mod gdt;
+pub mod gdt;
 pub mod vga;
