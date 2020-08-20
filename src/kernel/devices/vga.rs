@@ -55,15 +55,7 @@ impl Writer {
 
     #[inline]
     fn write_string(&mut self, s: &str) {
-        for b in s.bytes() {
-            match b {
-                // printable ASCII char
-                0x20..=0x7e | b'\n' => self.write_byte(b),
-
-                // not in ASCII range
-                _ => self.write_byte(0xfe),
-            }
-        }
+        s.bytes().for_each(|b| self.write_byte(b));
     }
 
     #[inline]
