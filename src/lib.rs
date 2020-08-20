@@ -9,9 +9,9 @@
 extern crate alloc;
 extern crate rlibc;
 
-pub mod allocator;
 pub mod gdt;
 pub mod interrupts;
+pub mod kernel;
 pub mod memory;
 pub mod panic;
 pub mod qemu;
@@ -36,7 +36,8 @@ pub fn kmain(boot_info: &'static BootInfo) {
     let mut mapper = unsafe { memory::init(phys_mem_offset) };
     let mut frame_allocator = unsafe { BootInfoFrameAllocator::init(&boot_info.memory_map) };
 
-    allocator::init_heap(&mut mapper, &mut frame_allocator).expect("heap initialization failed");
+    kernel::allocator::init_heap(&mut mapper, &mut frame_allocator)
+        .expect("heap initialization failed");
 }
 
 /// This is the main kernel entry point for secondary CPUs

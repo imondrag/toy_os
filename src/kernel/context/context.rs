@@ -18,3 +18,5 @@ pub struct Context {
     /// Context running or not
     pub running: bool,
 }
+
+type ContextId = usize;
