@@ -9,29 +9,25 @@
 extern crate alloc;
 extern crate rlibc;
 
-pub mod gdt;
-pub mod interrupts;
 pub mod kernel;
-pub mod memory;
 pub mod qemu;
 pub mod task;
-pub mod vga;
 
-use crate::memory::BootInfoFrameAllocator;
 pub use bootloader::BootInfo;
+use kernel::memory::BootInfoFrameAllocator;
 use x86_64::VirtAddr;
 
 /// This is the kernel entry point for the primary CPU.
 /// TODO: THIS SHOULD NOT RETURN
 pub fn kmain(boot_info: &'static BootInfo) {
-    gdt::init();
-    interrupts::init_idt();
-    unsafe { interrupts::PICS.lock().initialize() };
+    kernel::gdt::init();
+    kernel::interrupts::init_idt();
+    unsafe { kernel::interrupts::PICS.lock().initialize() };
 
     x86_64::instructions::interrupts::enable();
 
     let phys_mem_offset = VirtAddr::new(boot_info.physical_memory_offset);
-    let mut mapper = unsafe { memory::init(phys_mem_offset) };
+    let mut mapper = unsafe { kernel::memory::init(phys_mem_offset) };
     let mut frame_allocator = unsafe { BootInfoFrameAllocator::init(&boot_info.memory_map) };
 
     kernel::allocator::init_heap(&mut mapper, &mut frame_allocator)

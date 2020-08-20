@@ -125,7 +125,7 @@ impl Writer {
 
 #[macro_export]
 macro_rules! print {
-    ($($arg:tt)*) => ($crate::vga::writer::_print(format_args!($($arg)*)));
+    ($($arg:tt)*) => ($crate::kernel::vga::writer::_print(format_args!($($arg)*)));
 }
 
 #[macro_export]
