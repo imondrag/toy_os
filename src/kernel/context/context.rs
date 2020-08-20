@@ -19,4 +19,5 @@ pub struct Context {
     pub running: bool,
 }
 
-type ContextId = usize;
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+pub struct ContextId(usize);
