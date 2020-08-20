@@ -1,6 +1,6 @@
-/// TODO
-///
+/// TOY OS KERNEL
 pub mod allocator;
 pub mod context;
 pub mod devices;
-// mod memory;
+pub mod panic;
+pub mod serial;

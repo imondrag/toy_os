@@ -13,9 +13,7 @@ pub mod gdt;
 pub mod interrupts;
 pub mod kernel;
 pub mod memory;
-pub mod panic;
 pub mod qemu;
-pub mod serial;
 pub mod task;
 pub mod vga;
 
